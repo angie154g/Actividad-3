@@ -1,0 +1,126 @@
+---
+title: "Actividad 3 - Transformación y unificación de ferias del libro "
+author: "Angélica Benítez"
+date: "2025-08-01"
+output: html_document
+---
+
+
+## Introduccion
+Este proyecto corresponde a la **Actividad 3** del curso. Su objetivo es reestructurar, transformar e integrar datos sobre ferias del libro a partir de diferentes fuentes, para obtener un solo dataset en formato limpio y listo para análisis posterior.
+
+¿Qué harás en esta actividad?
+    Usar pivot_longer, separate, mutate, case_when y joins para unificar las fuentes.
+    Crear nuevas variables útiles para análisis posterior.
+    Generar un flujo con dplyr y pipes que documente la transformación completa.
+    Guardar este flujo en /scripts/transform.Rplyr y el dataset final en      data/processed/final_dataset.csv
+
+
+# Cargar paquetes y librerias
+
+```{r}
+
+library(readr)
+library(readxl)
+library(dplyr)
+library(tidyr)
+library(stringr)
+library(here)
+
+```
+
+# Cargar datos
+los datos estan en archivo excel y se especifica en que hoja se encuentran 
+```{r }
+data_raw_1 <- read_xlsx (here("data", "raw", "feria_libro_directorio.xlsx"), sheet = "Feria")
+data_raw_2 <- read_excel (here("data", "raw", "feria_libro_directorio.xlsx" ), sheet = "Directorio")
+data_raw_3 <- read_excel (here("data", "raw", "feria_libro_directorio.xlsx"), sheet = "Ubicacion_geoespacial")
+
+
+```
+
+# Unificar las fuentes.
+ Ver los primeros registros, esto permite verificar que los nombres de las columnas coincidan 
+```{r}
+head(data_raw_1)
+head(data_raw_2)
+head(data_raw_3)
+```
+
+# Unificar los nombres de columnas para join
+Se encontro que la columna que es coincidente para realizar la unificacion tiene un nombre de columna diferente. Se realiza el cambio de nombre. Al ultimo se verifica si se realizo el cambio correspondiente mediante head()
+
+```{r}
+data_raw_3 <- data_raw_3 %>%
+  rename( 
+    feria_libro_id = feria_ID,
+    feria_libro_nombre = feria_nombre
+  )
+
+head(data_raw_3)
+```
+
+# Unificar los datasets por 'feria_libro_id' usando left_joins
+se unen los tres archivos en un dataframe, se cambia de latin1 a UTF-8 para evitar caracteres desconocidos. 
+```{r}
+ferias_unificadas <- data_raw_1 %>%
+  left_join(data_raw_2, by = c("feria_libro_id", "feria_libro_nombre")) %>%
+  left_join(data_raw_3, by = c("feria_libro_id", "feria_libro_nombre"))
+
+ferias_unificadas <- ferias_unificadas %>%
+  mutate(across(where(is.character), ~ iconv(.x, from = "latin1", to = "UTF-8")))
+
+
+```
+
+# Limpiar datos: Convertir coordenadas 0 en NA y se agrega columna de region
+Se cambian los datos de latitud y longitud por NA, para evitar datos de geolocalizacion erroneos. 
+Se agrega una columna y se especifica en ella a que region pertenece cada entidad. 
+
+```{r}
+ferias_final <- ferias_unificadas %>%
+  mutate(
+    longitud = if_else(longitud == 0, NA_real_, longitud),
+    latitud = if_else(latitud == 0, NA_real_, latitud),
+    
+
+    
+    # Crear una variable de región aproximada por Entidad
+    region = case_when(Entidad %in% c("Baja California", "Sonora", "Chihuahua", "Baja California Sur", 
+                     "Sinaloa", "Durango") ~ "Noroeste",
+      Entidad %in% c("Coahuila", "Nuevo Leon", "Tamaulipas") ~ "Noreste",
+      Entidad %in% c("Colima", "Jalisco", "Michoacan", "Nayarit") ~ "Oste",
+      Entidad %in% c("Hidalgo", "Puebla", "Veracruz", "Tlaxcala") ~ "Este",
+      Entidad %in% c("Aguascalientes", "Zacatecas", "San Luis Potosi", "Guanajuato", "Queretaro") ~ "Centro-Norte",
+      Entidad %in% c("Morelos", "Ciudad de Mexico", "Mexico") ~ "Centro-Sur",
+      Entidad %in% c("Chiapas", "Guerrero", "Oaxaca") ~ "Suroeste",
+      Entidad %in% c("Campeche", "Yucatan", "Quintana Roo", "Tabasco") ~ "Sureste",
+            TRUE ~ "Otra"  
+      )
+    )
+
+
+```
+
+# Crear carpeta de salida si no existe
+Se crea la carpeta processed dentro de la carpeta data, en esta carpeta se colocara el archivo obtenido. 
+```{r}
+if (!dir.exists("data/processed")) {
+  dir.create("data/processed", recursive = TRUE)
+}
+
+```
+
+# Guardar dataset final
+Hemos terminado el proceso y el archivo obtenido se guarda en la carpeta creada en el paso anterior. 
+```{r}
+write_csv(ferias_final, "data/processed/final_dataset.csv")
+
+```
+
+# Visualización de resultado
+```{r}
+head(ferias_final)
+
+```
+
