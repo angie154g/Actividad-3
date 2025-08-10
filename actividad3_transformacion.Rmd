@@ -16,7 +16,7 @@ Este proyecto corresponde a la **Actividad 3** del curso. Su objetivo es reestru
     Guardar este flujo en /scripts/transform.Rplyr y el dataset final en      data/processed/final_dataset.csv
 
 
-# Cargar paquetes y librerias
+## Cargar paquetes y librerias
 
 ```{r}
 
@@ -29,7 +29,7 @@ library(here)
 
 ```
 
-# Cargar datos
+##Cargar datos
 los datos estan en archivo excel y se especifica en que hoja se encuentran 
 ```{r }
 data_raw_1 <- read_xlsx (here("data", "raw", "feria_libro_directorio.xlsx"), sheet = "Feria")
@@ -39,7 +39,7 @@ data_raw_3 <- read_excel (here("data", "raw", "feria_libro_directorio.xlsx"), sh
 
 ```
 
-# Unificar las fuentes.
+## Unificar las fuentes.
  Ver los primeros registros, esto permite verificar que los nombres de las columnas coincidan 
 ```{r}
 head(data_raw_1)
@@ -47,7 +47,7 @@ head(data_raw_2)
 head(data_raw_3)
 ```
 
-# Unificar los nombres de columnas para join
+## Unificar los nombres de columnas para join
 Se encontro que la columna que es coincidente para realizar la unificacion tiene un nombre de columna diferente. Se realiza el cambio de nombre. Al ultimo se verifica si se realizo el cambio correspondiente mediante head()
 
 ```{r}
@@ -60,7 +60,7 @@ data_raw_3 <- data_raw_3 %>%
 head(data_raw_3)
 ```
 
-# Unificar los datasets por 'feria_libro_id' usando left_joins
+## Unificar los datasets por 'feria_libro_id' usando left_joins
 se unen los tres archivos en un dataframe, se cambia de latin1 a UTF-8 para evitar caracteres desconocidos. 
 ```{r}
 ferias_unificadas <- data_raw_1 %>%
@@ -73,7 +73,7 @@ ferias_unificadas <- ferias_unificadas %>%
 
 ```
 
-# Limpiar datos: Convertir coordenadas 0 en NA y se agrega columna de region
+## Limpiar datos: Convertir coordenadas 0 en NA y se agrega columna de region
 Se cambian los datos de latitud y longitud por NA, para evitar datos de geolocalizacion erroneos. 
 Se agrega una columna y se especifica en ella a que region pertenece cada entidad. 
 
@@ -102,7 +102,7 @@ ferias_final <- ferias_unificadas %>%
 
 ```
 
-# Crear carpeta de salida si no existe
+## Crear carpeta de salida si no existe
 Se crea la carpeta processed dentro de la carpeta data, en esta carpeta se colocara el archivo obtenido. 
 ```{r}
 if (!dir.exists("data/processed")) {
@@ -111,14 +111,14 @@ if (!dir.exists("data/processed")) {
 
 ```
 
-# Guardar dataset final
+## Guardar dataset final
 Hemos terminado el proceso y el archivo obtenido se guarda en la carpeta creada en el paso anterior. 
 ```{r}
 write_csv(ferias_final, "data/processed/final_dataset.csv")
 
 ```
 
-# Visualización de resultado
+## Visualización de resultado
 ```{r}
 head(ferias_final)
 
