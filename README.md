@@ -54,7 +54,7 @@ source("scripts/transform.R")
 
 Esto leerá, limpiará y exportará el dataset final a `data/processed/final_dataset.csv`.
 
-### 🔹 Opción 2: Knit el archivo `.Rmd`
+###  Opción 2: Knit el archivo `.Rmd`
 
 Compila el archivo `actividad3_transformacion.Rmd` usando el botón **Knit** para obtener un reporte en HTML con todo el análisis y el resultado.
 
